@@ -13,7 +13,7 @@ public class App8001 {
         // set routes
 //        server.createContext("/hello", new Hello());
         server.createContext("/log", new Log());
-        server.createContext("/cHand", new CookieHandler());
+        server.createContext("/chand", new CookieHandler());
 
         server.setExecutor(null); // creates a default executor
 

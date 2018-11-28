@@ -15,6 +15,7 @@ public class CookieHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
+
         counter++;
         String response = "Page was visited: " + counter + " times!";
 
@@ -34,6 +35,7 @@ public class CookieHandler implements HttpHandler {
         response += "\n session id: " + cookie.get().getValue();
 
         sendResponse(httpExchange, response);
+
     }
 
     private Optional<HttpCookie> getSessionIdCookie(HttpExchange httpExchange){
@@ -49,4 +51,7 @@ public class CookieHandler implements HttpHandler {
         os.close();
 
     }
+
+
+
 }
