@@ -1,11 +1,12 @@
 import DAO.NamePasswordDAO;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import org.jtwig.JtwigModel;
+import org.jtwig.JtwigTemplate;
 
 import java.io.*;
 import java.net.HttpCookie;
 import java.net.URLDecoder;
-import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,33 +16,26 @@ public class Log implements HttpHandler {
 
     private static final String SESSION_COOKIE_NAME = "sessionId";
     CookieHelper cookieHelper = new CookieHelper();
-
     NamePasswordDAO namePasswordDAO = new NamePasswordDAO();
     int counter = 0;
-    String currentTime= null;
 
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
 
-
-
         String response = "";
         String method = httpExchange.getRequestMethod();
-//         Send a form if it wasn't submitted yet.
+
+        // Send a form if it wasn't submitted yet.
+        // get a template file
+        JtwigTemplate layout = JtwigTemplate.classpathTemplate("templates/layout.twig");
+        JtwigTemplate layoutMessage = JtwigTemplate.classpathTemplate("templates/layoutMessage.twig");
+        JtwigTemplate layoutLogOut = JtwigTemplate.classpathTemplate("templates/layoutLogOut.twig");
+
+        // create a model that will be passed to a template
+        JtwigModel model = JtwigModel.newModel();
+
         if(method.equals("GET")){
-            System.out.println("000");
-            response = "<html><body>" +
-                            "<h1>Sign in</h1>" +
-                            "<form method=\"POST\">\n" +
-                                "  User Name:<br>\n" +
-                                "  <input type=\"text\" name=\"firstname\" value=\"\">\n" +
-                                "  <br>\n" +
-                                "  Password:<br>\n" +
-                                "  <input type=\"text\" name=\"password\" value=\"\">\n" +
-                                "  <br><br>\n" +
-                                "  <input type=\"submit\" value=\"LOG IN\">\n" +
-                            "</form> " +
-                    "</body></html>";
+            response = layout.render(model);
         }
 
         // If the form was submitted, retrieve it's content.
@@ -56,48 +50,25 @@ public class Log implements HttpHandler {
             String submitLogout = (String)inputs.get("logout");
 
             if( submitLogout!=null) {
-                response = "<html><body>" +
-                        "<h1>Sign in</h1>" +
-                        "<form method=\"POST\">\n" +
-                        "  User Name:<br>\n" +
-                        "  <input type=\"text\" name=\"firstname\" value=\"\">\n" +
-                        "  <br>\n" +
-                        "  Password:<br>\n" +
-                        "  <input type=\"text\" name=\"password\" value=\"\">\n" +
-                        "  <br><br>\n" +
-                        "  <input type=\"submit\" value=\"LOG IN\">\n" +
-                        "</form> ";
-            }else if ( namePasswordDAO.checkNamePassword(name,password) ) {
-                System.out.println(" 2");
 
-                String message = "Hello : " + inputs.get("firstname") + " !!!" + "<br>";
-                response = "<html><body>" +
-                                    "<h4>" + message + "</h4>" +
-                                    "<form method=\"POST\">\n" +
-                                        "  <input type=\"submit\" name=\"logout\" value=\"LOG OUT\">\n" +
-                                    "</form> " +
-                            "</body><html>";
-            }else{
+                response = layout.render(model);
+
+            } else if ( namePasswordDAO.checkNamePassword(name,password) ) {
+
+                String helloMessage = "Hello : " + inputs.get("firstname") + " !!!" + "<br>";
+                model.with("helloMessage", helloMessage);
+                response = layoutLogOut.render(model);
+
+            } else {
+
                 String attentionMessage = " Wrong name or password !!!<br>Try again. ";
-                response = "<html><body>" +
-                            "<h1>Sign in</h1>" +
-                            "<h4>" + attentionMessage + "</h4>" +
-                            "<form method=\"POST\">\n" +
-                                "  User Name:<br>\n" +
-                                "  <input type=\"text\" name=\"firstname\" value=\"...\">\n" +
-                                "  <br>\n" +
-                                "  Password:<br>\n" +
-                                "  <input type=\"text\" name=\"password\" value=\"...\">\n" +
-                                "  <br><br>\n" +
-                                "  <input type=\"submit\" value=\"LOG IN\">\n" +
-                            "</form> " +
-                        "</body></html>";
-                System.out.println(" 4");
+                model.with("attentionMessage", attentionMessage);
+                response = layoutMessage.render(model);
             }
         }
 
         counter++;
-//        String response = "Page was visited: " + counter + " times!";
+        response += "Page was visited: " + counter + " times!";
         Optional<HttpCookie> cookie = getSessionIdCookie(httpExchange);
 
         boolean isNewSession;
@@ -113,15 +84,7 @@ public class Log implements HttpHandler {
         response += "\n isNewSession: " + isNewSession+"<br>";
         response += "\n session id: " + cookie.get().getValue();
 
-//        sendResponse(httpExchange, response);
-
-        httpExchange.sendResponseHeaders(200, response.length());
-        OutputStream outputStream = httpExchange.getResponseBody();
-        outputStream.write(response.getBytes());
-        outputStream.close();
-
-        System.out.println(" 5");
-
+        sendResponse(httpExchange, response);
     }
 
     private static Map<String, String> parseFormData(String formData) throws UnsupportedEncodingException {
@@ -147,7 +110,6 @@ public class Log implements HttpHandler {
         OutputStream outputStream = httpExchange.getResponseBody();
         outputStream.write(response.getBytes());
         outputStream.close();
-
     }
 
 }
