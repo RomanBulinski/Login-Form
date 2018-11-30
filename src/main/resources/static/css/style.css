@@ -1,6 +1,82 @@
 
-body {background-color: coral;}
+body {
+    background-color:
+    white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-family: Arial, Helvetica, Verdana, sans-serif;
+  }
+
+section {
+    font-family: Arial;
+    font-size: 15px;
+    color: white;
+    background-color: grey;
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    margin: auto;
+    background-image: linear-gradient(to bottom right, red, yellow);
+    position: relative;
+}
+
+header {
+    height: 100px;
+    background-color: white;
+}
+
+footer {
+    font-family: Arial;
+    font-size: 15px;
+    color: black;
+    background-color: white;
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    margin: auto;
+
+}
 
 h1 {
-    color: yellow;
+    color: white;
+    font-size: 50px;
 }
+
+input[type=submit] {
+    width: 50%;
+    height: 30px;
+    background-color: black;
+    color: white;
+    font-size: 20px;
+    transform: rotate(-5deg);
+    border: none;
+}
+
+input[type=submit]:hover {
+    background-color: grey;
+    transform: scale(1.2,1.2);
+    box-shadow: 5px 5px 5px black;
+}
+
+
+input[type=text] {
+    width: 80%;
+}
+
+h4 {
+        color: black;
+        font-size: 30px;
+        text-shadow: 2px 2px 2px black;
+}
+
+.attention{
+    position: absolute;
+    left: 180px;
+    top: 5px;
+    color: black;
+    transform: rotate(5deg);
+}
+

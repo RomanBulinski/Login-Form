@@ -23,18 +23,36 @@ public class Log implements HttpHandler {
     public void handle(HttpExchange httpExchange) throws IOException {
 
         String response = "";
+
+        String statistic ="";
+
+        counter++;
+        statistic = statistic + "Page was visited: " + counter + " times!";
+
+        Optional<HttpCookie> cookie = getSessionIdCookie(httpExchange);
+        boolean isNewSession;
+        if (cookie.isPresent()) {  // Cookie already exists
+            isNewSession = false;
+        } else { // Create a new cookie
+            isNewSession = true;
+            String sessionId = String.valueOf(counter); // This isn't a good way to create sessionId. Find a better one!
+            cookie = Optional.of(new HttpCookie(SESSION_COOKIE_NAME, sessionId));
+            httpExchange.getResponseHeaders().add("Set-Cookie", cookie.get().toString());
+        }
+
+        statistic += "\n isNewSession: " + isNewSession+"<br>";
+        statistic += "\n session id: " + cookie.get().getValue();
+
         String method = httpExchange.getRequestMethod();
 
-        // Send a form if it wasn't submitted yet.
-        // get a template file
         JtwigTemplate layout = JtwigTemplate.classpathTemplate("templates/layout.twig");
         JtwigTemplate layoutMessage = JtwigTemplate.classpathTemplate("templates/layoutMessage.twig");
         JtwigTemplate layoutLogOut = JtwigTemplate.classpathTemplate("templates/layoutLogOut.twig");
-
         // create a model that will be passed to a template
         JtwigModel model = JtwigModel.newModel();
 
         if(method.equals("GET")){
+            model.with("statistic", statistic);
             response = layout.render(model);
         }
 
@@ -50,39 +68,25 @@ public class Log implements HttpHandler {
             String submitLogout = (String)inputs.get("logout");
 
             if( submitLogout!=null) {
-
+//          layout html
+                model.with("statistic", statistic);
                 response = layout.render(model);
-
             } else if ( namePasswordDAO.checkNamePassword(name,password) ) {
-
-                String helloMessage = "Hello : " + inputs.get("firstname") + " !!!" + "<br>";
+//          layoutLogOut html
+                String helloMessage = "Hello " + inputs.get("firstname") + " !!!" + "<br>";
                 model.with("helloMessage", helloMessage);
+                model.with("statistic", statistic);
                 response = layoutLogOut.render(model);
-
             } else {
-
+//          layoutMessage html
                 String attentionMessage = " Wrong name or password !!!<br>Try again. ";
                 model.with("attentionMessage", attentionMessage);
+                model.with("statistic", statistic);
                 response = layoutMessage.render(model);
             }
         }
 
-        counter++;
-        response += "Page was visited: " + counter + " times!";
-        Optional<HttpCookie> cookie = getSessionIdCookie(httpExchange);
 
-        boolean isNewSession;
-        if (cookie.isPresent()) {  // Cookie already exists
-            isNewSession = false;
-        } else { // Create a new cookie
-            isNewSession = true;
-            String sessionId = String.valueOf(counter); // This isn't a good way to create sessionId. Find a better one!
-            cookie = Optional.of(new HttpCookie(SESSION_COOKIE_NAME, sessionId));
-            httpExchange.getResponseHeaders().add("Set-Cookie", cookie.get().toString());
-        }
-
-        response += "\n isNewSession: " + isNewSession+"<br>";
-        response += "\n session id: " + cookie.get().getValue();
 
         sendResponse(httpExchange, response);
     }
